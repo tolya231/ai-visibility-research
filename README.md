@@ -30,3 +30,5 @@ git clone https://github.com/tolya231/ai-visibility-research.git /tmp/ai-visibil
 - `ai-visibility-research/references/agent-briefs.md` — постановки для агентов.
 
 Выводы получены на небольшой выборке (3 сайта, ~45 запросов, ноябрь 2026). Это пилот, а не отраслевая статистика.
+
+Полные результаты замеров: [RESULTS.md](RESULTS.md) (то же в HTML — `results.html`).

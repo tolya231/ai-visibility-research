@@ -1,0 +1,201 @@
+<title>Алиса и ИИ-ответы: замеры</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: одна колонка отчёта ~760px, графики — горизонтальные полосы, таблицы в своих скролл-контейнерах */
+:root {
+  --bg: #f5f6f8; --surface: #ffffff; --fg: #151a22; --muted: #5b6474; --line: #dfe3ea;
+  --accent: #2f56c9; --accent-soft: #e4eafb; --ok: #1f7a4d; --ok-soft: #e1f2e8; --bad: #b3362b; --bad-soft: #f8e3e0; --warn: #8a6100; --warn-soft: #f6ecd2;
+  --display: "Unbounded", "IBM Plex Sans", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11141a; --surface: #181c24; --fg: #e8ebf1; --muted: #9aa3b2; --line: #2a303b;
+  --accent: #7d9cf0; --accent-soft: #1f2a45; --ok: #5fc191; --ok-soft: #173126; --bad: #ef8a7f; --bad-soft: #3a1d1a; --warn: #e2b95a; --warn-soft: #352a12; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11141a; --surface: #181c24; --fg: #e8ebf1; --muted: #9aa3b2; --line: #2a303b;
+  --accent: #7d9cf0; --accent-soft: #1f2a45; --ok: #5fc191; --ok-soft: #173126; --bad: #ef8a7f; --bad-soft: #3a1d1a; --warn: #e2b95a; --warn-soft: #352a12; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.55; }
+.wrap { max-width: 800px; margin: 0 auto; padding-block: 40px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 44px; }
+h1, h2 { font-family: var(--display); text-wrap: balance; letter-spacing: -0.01em; margin: 0; }
+h1 { font-size: clamp(26px, 5vw, 38px); line-height: 1.15; }
+h2 { font-size: 21px; line-height: 1.25; }
+h3 { font-size: 16px; margin: 0; }
+p { margin: 0; max-width: 66ch; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+section { display: grid; gap: 16px; min-width: 0; }
+.lede { color: var(--muted); font-size: 17px; }
+.scope { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.scope div { border-top: 2px solid var(--fg); padding-top: 8px; }
+.scope b { display: block; font-family: var(--mono); font-size: 24px; font-variant-numeric: tabular-nums; }
+.scope span { color: var(--muted); font-size: 13px; }
+.chart { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px; display: grid; gap: 10px; }
+.bar { display: grid; grid-template-columns: 120px 1fr 52px; gap: 12px; align-items: center; font-size: 14px; }
+.bar .track { height: 18px; background: var(--accent-soft); border-radius: 3px; overflow: hidden; }
+.bar .fill { height: 100%; background: var(--accent); }
+.bar .v { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+.note { font-size: 13px; color: var(--muted); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.yes { background: var(--ok-soft); color: var(--ok); }
+.no { background: var(--bad-soft); color: var(--bad); }
+.mid { background: var(--warn-soft); color: var(--warn); }
+.split { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: grid; gap: 6px; align-content: start; }
+.card b.big { font-family: var(--mono); font-size: 30px; font-variant-numeric: tabular-nums; }
+ol.plan { margin: 0; padding-left: 22px; display: grid; gap: 6px; max-width: 70ch; }
+code { font-family: var(--mono); font-size: 13px; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
+footer { color: var(--muted); font-size: 13px; display: grid; gap: 6px; }
+@media (max-width: 480px) { .bar { grid-template-columns: 92px 1fr 44px; } }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:14px">
+    <div class="eyebrow">Исследование · 17 ноября 2026 · РФ</div>
+    <h1>Как сайты попадают в ответы Алисы, GigaChat и DeepSeek</h1>
+    <p class="lede">Сводка замеров на трёх тестовых сайтах: блок «Алиса AI» в выдаче Яндекса, чат Алисы, GigaChat, DeepSeek, ChatGPT, Perplexity, логи серверов. Всё ниже прошло перепроверку без VPN и без личного аккаунта, плюс разбор трёх агентов-критиков.</p>
+    <div class="scope">
+      <div><b>45</b><span>запросов в Яндексе, ~220 снимков выдачи</span></div>
+      <div><b>~330</b><span>страниц из топ-20 разобрано по признакам</span></div>
+      <div><b>60+</b><span>вопросов ассистентам</span></div>
+      <div><b>15 дн.</b><span>логов двух серверов</span></div>
+    </div>
+  </header>
+
+  <section>
+    <div class="eyebrow">Главное</div>
+    <h2>Позиция решает, но порога «топ-5» нет</h2>
+    <p>Какую долю страниц на каждой позиции Алиса процитировала в ответе. Без аккаунта, российский IP, 30 запросов.</p>
+    <div class="chart" role="img" aria-label="Доля процитированных страниц по позициям: 1–3 — 68%, 4–6 — 59%, 7–10 — 30%, 11–20 — 14%">
+      <div class="bar"><span>Позиции 1–3</span><div class="track"><div class="fill" style="width:68%"></div></div><span class="v">68%</span></div>
+      <div class="bar"><span>Позиции 4–6</span><div class="track"><div class="fill" style="width:59%"></div></div><span class="v">59%</span></div>
+      <div class="bar"><span>Позиции 7–10</span><div class="track"><div class="fill" style="width:30%"></div></div><span class="v">30%</span></div>
+      <div class="bar"><span>Позиции 11–20</span><div class="track"><div class="fill" style="width:14%"></div></div><span class="v">14%</span></div>
+    </div>
+    <p>А откуда сами цитаты. Почти половина ведёт на страницы, которых в видимой выдаче нет вообще: Дзен, Хабр, Рувики, медиа.</p>
+    <div class="chart" role="img" aria-label="Источник цитат: топ-10 — 47%, позиции 11–20 — 9%, вне топ-20 — 45%">
+      <div class="bar"><span>Из топ-10</span><div class="track"><div class="fill" style="width:47%"></div></div><span class="v">47%</span></div>
+      <div class="bar"><span>Из 11–20</span><div class="track"><div class="fill" style="width:9%"></div></div><span class="v">9%</span></div>
+      <div class="bar"><span>Вне топ-20</span><div class="track"><div class="fill" style="width:45%"></div></div><span class="v">45%</span></div>
+      <p class="note">По URL. По домену: 60% / 13% / 28%. Перепроверка 17.11.2026.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Оформление страницы</div>
+    <h2>FAQ и разметка не отличают процитированные страницы</h2>
+    <p>Сравнение страниц из одного топа: какие Алиса процитировала и какие нет.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Признак</th><th>Процитированы</th><th>Не процитированы</th><th>Вывод</th></tr></thead>
+      <tbody>
+        <tr><td>FAQ-блок</td><td class="num">56%</td><td class="num">56%</td><td><span class="pill no">нет эффекта</span></td></tr>
+        <tr><td>Прямой ответ в первом абзаце</td><td class="num">37%</td><td class="num">39%</td><td><span class="pill no">нет эффекта</span></td></tr>
+        <tr><td>Любая разметка schema.org</td><td class="num">89%</td><td class="num">85%</td><td><span class="pill no">нет эффекта</span></td></tr>
+        <tr><td>Разметка FAQPage</td><td class="num">37%</td><td class="num">39%</td><td><span class="pill no">нет эффекта</span></td></tr>
+        <tr><td>Слова запроса в начале title</td><td class="num">79%</td><td class="num">80%</td><td><span class="pill no">нет эффекта</span></td></tr>
+        <tr><td>Таблица на странице</td><td class="num">46–48%</td><td class="num">23–31%</td><td><span class="pill mid">тренд, не доказан</span></td></tr>
+        <tr><td>Свежая дата обновления</td><td class="num">92%</td><td class="num">52%</td><td><span class="pill mid">исчезает внутри одного запроса</span></td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">Выборка мала, слабые эффекты не исключены. Свежесть и таблицы смешаны с типом страницы и позицией; причинность проверяем контролируемым экспериментом.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Блок Алисы в выдаче</div>
+    <h2>Каждый шестой запрос Алиса закрывает сама</h2>
+    <div class="split">
+      <div class="card"><b class="big">13</b><span>из 30 запросов — стабильно ответ с источниками</span></div>
+      <div class="card"><b class="big">5</b><span>«плавают»: блок то есть, то нет</span></div>
+      <div class="card"><b class="big">5</b><span>генеративные: сказка, письмо Деду Морозу, идеи подарков. Источников нет, сайту не попасть</span></div>
+      <div class="card"><b class="big">7</b><span>без блока: в основном «онлайн / бесплатно»</span></div>
+    </div>
+    <p>Текст ответа в выдаче не персонализирован: ни одной фразы вида «учитывая, что ты…» в 90 снимках. Органика персонализирована: сайт стоял #2 под аккаунтом владельца и #6 без него. Чат Алисы персонализирован и пересекается с блоком в выдаче по доменам всего на 0,27–0,71.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Другие ассистенты</div>
+    <h2>Малоизвестные бренды ассистенты не находят или выдумывают</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Ассистент</th><th>Как ищет</th><th>Что выяснили</th></tr></thead>
+      <tbody>
+        <tr><td><b>GigaChat</b></td><td>Ищет в вебе на каждый вопрос («изучил 15 страниц»), сайт в момент вопроса не открывает</td><td>Сайт бренда в источниках 36–40%, не 75%. Подменил один сервис другим доменом, выдумал цены и лимиты</td></tr>
+        <tr><td><b>DeepSeek</b></td><td>Без домена в вопросе наши сайты не находит. С доменом открывает сайт сам: браузер с IP Huawei Cloud через 10–20 с</td><td>0 из 6 ответов назвали наши сайты, даже с названием бренда. В Bing эти же сайты №1 по тем же фразам</td></tr>
+        <tr><td><b>Copilot</b></td><td>Отвечает из индекса Bing, отдельного бота нет</td><td>Сайт с 29 страницами в Bing — 39 цитат в Copilot за 10 дней</td></tr>
+        <tr><td><b>ChatGPT</b></td><td>OAI-SearchBot индексирует, ChatGPT-User открывает страницу под вопрос</td><td>ChatGPT-User начал ходить через 7,5 ч после первого обхода OAI-SearchBot</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Трафик и боты</div>
+    <h2>Из ИИ пока единицы переходов</h2>
+    <div class="chart" role="img" aria-label="Переходы за 2 недели: поиск Яндекса 448, Дзен 88, Google 58, все ИИ-ассистенты 3">
+      <div class="bar"><span>Поиск Яндекса</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">448</span></div>
+      <div class="bar"><span>Дзен</span><div class="track"><div class="fill" style="width:19.6%"></div></div><span class="v">88</span></div>
+      <div class="bar"><span>Google</span><div class="track"><div class="fill" style="width:12.9%"></div></div><span class="v">58</span></div>
+      <div class="bar"><span>Все ИИ</span><div class="track"><div class="fill" style="width:0.7%"></div></div><span class="v">3</span></div>
+      <p class="note">Поиск, Дзен и Google — запросы страниц одного сайта; ИИ — переходы на все три сайта. Клики из блока Алисы в выдаче в Метрике и логах неотличимы от поиска Яндекса: их видно только в отчёте Вебмастера.</p>
+    </div>
+    <div class="split">
+      <div class="card"><b class="big">0</b><span>запросов <code>llms.txt</code> от ИИ-ботов за 15 дней</span></div>
+      <div class="card"><b class="big">0</b><span>визитов бота GigaChat / Сбера в логах</span></div>
+      <div class="card"><b class="big">0 / 300</b><span>ошибок сервера без VPN. «3% зависаний» были артефактом маршрута</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Чужие цифры</div>
+    <h2>Что не подтвердилось</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Утверждение</th><th>Вердикт</th><th>На деле</th></tr></thead>
+      <tbody>
+        <tr><td>Чтобы попасть в Алису, нужен топ-5</td><td><span class="pill no">неверно</span></td><td>Половина цитат вне топ-20. Отчёт «Ашманова» — только интернет-магазины</td></tr>
+        <tr><td>У Алисы 0,2% ИИ-трафика, лидеры — Perplexity и GigaChat</td><td><span class="pill no">методический артефакт</span></td><td>Клики из выдачи считались поиском. По другим замерам у Алисы 31–40%</td></tr>
+        <tr><td>Трафик из ИИ вырос в 8 раз, до 2 млрд</td><td><span class="pill no">не подтверждено</span></td><td>Similarweb: 1,1 млрд, ×4,6, с мая 2026 плато</td></tr>
+        <tr><td>Конверсия из ИИ в 11 раз выше</td><td><span class="pill mid">частично</span></td><td>Clarity, сайты издателей, один месяц. У интернет-магазинов ChatGPT конвертирует хуже почти всех каналов</td></tr>
+        <tr><td>Под каждый подвопрос — отдельная страница</td><td><span class="pill no">вредно</span></td><td>У Google с 15.05.2026 — злоупотребление масштабированным контентом</td></tr>
+        <tr><td>Пустить GPTBot, писать на Reddit</td><td><span class="pill no">мимо</span></td><td>Для ответов нужен OAI-SearchBot; Reddit в РФ недоступен и Алисой не цитируется</td></tr>
+        <tr><td>Ответ Алисы на 42% запросов, аудитория 49,5 млн</td><td><span class="pill yes">верно</span></td><td>Q2 2026; в Q3 — 44% и 54,8 млн</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+
+  <section>
+    <div class="eyebrow">Что делать</div>
+    <h2>«Под ИИ» — это на 80% обычное SEO в Яндексе</h2>
+    <ol class="plan">
+      <li>Посадочные страницы — в индекс Яндекса. Без индекса нет ни органики, ни Алисы.</li>
+      <li>Страница отвечает ровно на подвопрос, который разбирает Алиса, а не на соседний.</li>
+      <li>«Имя (домен) — тип продукта» на главной, в подвале и на 2–3 внешних площадках: дешёвая защита от выдумок ассистентов.</li>
+      <li>Одна честная сравнительная страница на сайт: пометка «наш сервис», критерии, дата сверки цен. Без «лучший» без критерия (38-ФЗ).</li>
+      <li>Дзен и VK как основной внешний канал: уже дают в десятки раз больше переходов, чем ИИ.</li>
+      <li>Метки <code>?start=</code> для ботов и utm для внешних ссылок, иначе эффект не измерить.</li>
+      <li>Не делать: llms.txt, пакетную смену дат, страницы под каждый подзапрос, накрутки.</li>
+      <li>Замер раз в месяц, 30–40 минут: отчёт «Видимость сайта в Алисе AI» в Вебмастере, 3 запроса × 2 прогона без аккаунта, GigaChat, ИИ-переходы.</li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="eyebrow">Методика</div>
+    <h2>Как снимали и что может исказить замер</h2>
+    <div class="split">
+      <div class="card"><h3>Аккаунт</h3><span>Под аккаунтом владельца сайт выше в органике. Базовую линию снимать только в чистом окне.</span></div>
+      <div class="card"><h3>VPN</h3><span>Через зарубежный IP часть российских сайтов не отвечает, и выдача искажается.</span></div>
+      <div class="card"><h3>Капча</h3><span>Появляется на каждое новое окно и при быстром переходе на 2-ю страницу. Серию вести в одном окне.</span></div>
+      <div class="card"><h3>Нестабильность</h3><span>Источники при повторе совпадают на 70–80%, сам блок появляется не всегда. Мерить сериями.</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Как повторить исследование для своего сайта: скилл для Claude Code <a href="https://github.com/tolya231/ai-visibility-research">ai-visibility-research</a>.</p>
+    <p>Выборка: 3 сайта, около 45 запросов, один регион (Москва). Это пилот, а не отраслевая статистика.</p>
+  </footer>
+</div>
